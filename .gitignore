@@ -1,0 +1,8 @@
+data/*.csv
+models/*.pkl
+temp_upload.*
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
