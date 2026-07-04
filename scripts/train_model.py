@@ -40,12 +40,13 @@ def main():
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
     X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded
+        X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded
     )
+
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
 
     models = {
         "random_forest": RandomForestClassifier(n_estimators=200, max_depth=20, random_state=42),
