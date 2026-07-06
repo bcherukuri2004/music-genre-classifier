@@ -6,21 +6,23 @@ tracks in the dataset.
 
 import pandas as pd
 import numpy as np
+import joblib
 from pathlib import Path
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.preprocessing import StandardScaler
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "features_final.csv"
+MODEL_DIR = Path(__file__).parent.parent / "models"
 
 
 class TrackRecommender:
-    def __init__(self, features_path=DATA_PATH):
+    def __init__(self, features_path=DATA_PATH, model_dir=MODEL_DIR):
         self.df = pd.read_csv(features_path)
-        self.feature_cols = [c for c in self.df.columns if c not in ("track_id", "genre")]
 
-        self.scaler = StandardScaler()
-        self.X_scaled = self.scaler.fit_transform(self.df[self.feature_cols].values)
+        self.scaler = joblib.load(model_dir / "scaler.pkl")
+        self.feature_cols = joblib.load(model_dir / "feature_cols.pkl")
+
+        self.X_scaled = self.scaler.transform(self.df[self.feature_cols].values)
 
         self.knn = NearestNeighbors(n_neighbors=11, metric="euclidean")
         self.knn.fit(self.X_scaled)
