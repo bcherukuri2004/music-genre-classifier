@@ -11,6 +11,7 @@ Usage:
 """
 
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -84,13 +85,15 @@ uploaded_file = st.file_uploader("Upload an audio file (mp3 or wav)", type=["mp3
 
 if uploaded_file is not None:
     with st.spinner("Analyzing audio..."):
-        temp_path = Path("temp_upload") 
-        temp_path = temp_path.with_suffix(Path(uploaded_file.name).suffix)
-        with open(temp_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
+        suffix = Path(uploaded_file.name).suffix
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(uploaded_file.getbuffer())
+            temp_path = Path(tmp.name)
 
-        feats = extract_features_single(str(temp_path), feature_cols)
-        temp_path.unlink()
+        try:
+            feats = extract_features_single(str(temp_path), feature_cols)
+        finally:
+            temp_path.unlink()
 
     st.audio(uploaded_file)
 
