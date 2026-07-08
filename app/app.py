@@ -92,6 +92,9 @@ if uploaded_file is not None:
 
         try:
             feats = extract_features_single(str(temp_path), feature_cols)
+        except Exception:
+            st.error("Couldn't read that file as audio. Please upload a valid mp3 or wav.")
+            st.stop()
         finally:
             temp_path.unlink()
 
