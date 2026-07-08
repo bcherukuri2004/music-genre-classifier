@@ -74,7 +74,10 @@ st.set_page_config(page_title="Music Genre Classifier", page_icon="🎵", layout
 st.title("Music Genre Classifier and Recommender")
 st.write("Upload a track to predict its genre and find similar tracks in the dataset.")
 
-if not (MODEL_DIR / "genre_classifier.pkl").exists():
+REQUIRED_ARTIFACTS = ["genre_classifier.pkl", "scaler.pkl", "label_encoder.pkl", "feature_cols.pkl"]
+missing_artifacts = [name for name in REQUIRED_ARTIFACTS if not (MODEL_DIR / name).exists()]
+
+if missing_artifacts:
     st.error("No trained model found. Run scripts/train_model.py first.")
     st.stop()
 
