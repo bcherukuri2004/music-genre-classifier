@@ -27,6 +27,12 @@ MODEL_DIR.mkdir(exist_ok=True)
 def load_data():
     df = pd.read_csv(DATA_PATH)
     feature_cols = [c for c in df.columns if c not in ("track_id", "genre")]
+
+    nan_mask = df[feature_cols].isna().any(axis=1)
+    if nan_mask.any():
+        print(f"Dropping {nan_mask.sum()} rows with missing/NaN feature values")
+        df = df[~nan_mask].reset_index(drop=True)
+
     X = df[feature_cols].values
     y = df["genre"].values
     return X, y, feature_cols, df
