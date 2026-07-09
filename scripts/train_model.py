@@ -13,7 +13,7 @@ import numpy as np
 import joblib
 from pathlib import Path
 
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
@@ -49,8 +49,19 @@ def main():
     X_test = scaler.transform(X_test)
 
     models = {
-        "random_forest": RandomForestClassifier(n_estimators=200, max_depth=20, random_state=42),
-        "svm": SVC(kernel="rbf", C=10, probability=True, random_state=42),
+        "random_forest": RandomForestClassifier(random_state=42),
+        "svm": SVC(kernel="rbf", probability=True, random_state=42),
+    }
+
+    param_grids = {
+        "random_forest": {
+            "n_estimators": [100, 200, 400],
+            "max_depth": [10, 20, None],
+        },
+        "svm": {
+            "C": [1, 10, 100],
+            "gamma": ["scale", "auto"],
+        },
     }
 
     results = {}
@@ -59,18 +70,19 @@ def main():
     best_name = None
 
     for name, model in models.items():
-        print(f"\nTraining {name}...")
-        cv_scores = cross_val_score(model, X_train, y_train, cv=5)
-        print(f"  Cross val accuracy: {cv_scores.mean():.3f} (+/- {cv_scores.std():.3f})")
+        print(f"\nTuning {name}...")
+        grid = GridSearchCV(model, param_grids[name], cv=5, n_jobs=-1)
+        grid.fit(X_train, y_train)
+        print(f"  Best params: {grid.best_params_}")
+        print(f"  Best cross val accuracy: {grid.best_score_:.3f}")
 
-        model.fit(X_train, y_train)
-        test_acc = model.score(X_test, y_test)
+        test_acc = grid.score(X_test, y_test)
         print(f"  Test accuracy: {test_acc:.3f}")
 
         results[name] = test_acc
         if test_acc > best_score:
             best_score = test_acc
-            best_model = model
+            best_model = grid.best_estimator_
             best_name = name
 
     print(f"\nBest model: {best_name} with test accuracy {best_score:.3f}")
