@@ -11,17 +11,20 @@ Usage:
 import pandas as pd
 import numpy as np
 import joblib
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "features_final.csv"
 MODEL_DIR = Path(__file__).parent.parent / "models"
 MODEL_DIR.mkdir(exist_ok=True)
+REPORTS_DIR = Path(__file__).parent.parent / "reports"
+REPORTS_DIR.mkdir(exist_ok=True)
 
 
 def load_data():
@@ -57,6 +60,7 @@ def main():
     models = {
         "random_forest": RandomForestClassifier(random_state=42),
         "svm": SVC(kernel="rbf", probability=True, random_state=42),
+        "gradient_boosting": GradientBoostingClassifier(random_state=42),
     }
 
     param_grids = {
@@ -67,6 +71,11 @@ def main():
         "svm": {
             "C": [1, 10, 100],
             "gamma": ["scale", "auto"],
+        },
+        "gradient_boosting": {
+            "n_estimators": [100, 200],
+            "learning_rate": [0.05, 0.1],
+            "max_depth": [3, 5],
         },
     }
 
@@ -95,6 +104,16 @@ def main():
     y_pred = best_model.predict(X_test)
     print("\nClassification report:")
     print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ConfusionMatrixDisplay.from_predictions(
+        y_test, y_pred, display_labels=label_encoder.classes_, xticks_rotation="vertical", ax=ax
+    )
+    ax.set_title(f"Confusion matrix - {best_name}")
+    fig.tight_layout()
+    fig.savefig(REPORTS_DIR / "confusion_matrix.png", dpi=150)
+    plt.close(fig)
+    print(f"Saved confusion matrix to {REPORTS_DIR / 'confusion_matrix.png'}")
 
     joblib.dump(best_model, MODEL_DIR / "genre_classifier.pkl")
     joblib.dump(scaler, MODEL_DIR / "scaler.pkl")
