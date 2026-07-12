@@ -19,6 +19,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
+from xgboost import XGBClassifier
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "features_final.csv"
 MODEL_DIR = Path(__file__).parent.parent / "models"
@@ -61,6 +62,7 @@ def main():
         "random_forest": RandomForestClassifier(random_state=42),
         "svm": SVC(kernel="rbf", probability=True, random_state=42),
         "gradient_boosting": GradientBoostingClassifier(random_state=42),
+        "xgboost": XGBClassifier(random_state=42, eval_metric="mlogloss"),
     }
 
     param_grids = {
@@ -73,6 +75,11 @@ def main():
             "gamma": ["scale", "auto"],
         },
         "gradient_boosting": {
+            "n_estimators": [100, 200],
+            "learning_rate": [0.05, 0.1],
+            "max_depth": [3, 5],
+        },
+        "xgboost": {
             "n_estimators": [100, 200],
             "learning_rate": [0.05, 0.1],
             "max_depth": [3, 5],
