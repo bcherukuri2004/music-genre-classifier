@@ -46,6 +46,6 @@ def extract_features(file_path):
     features["zcr_mean"] = np.mean(zcr)
     features["harmonic_rms_mean"] = np.mean(harmonic_rms)
     features["percussive_rms_mean"] = np.mean(percussive_rms)
-    features["tempo"] = float(tempo) if np.isscalar(tempo) else float(tempo[0])
+    features["tempo"] = tempo if np.isscalar(tempo) else tempo[0]
 
-    return features
+    return {name: float(value) for name, value in features.items()}
